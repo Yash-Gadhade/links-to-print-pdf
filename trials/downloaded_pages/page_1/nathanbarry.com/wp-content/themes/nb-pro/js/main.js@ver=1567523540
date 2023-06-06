@@ -1,0 +1,166 @@
+(function ($) {
+
+	var NB = function () {
+		this.init();
+	}
+
+	NB.prototype = {
+		init: function () {
+			this.menuToggle = $('.menu-toggle');
+			this.mobileWrap = $('.mobile-wrap');
+			this.searchformToggle = $('.search-form-toggle');
+			this.mobileMenu = $('.mobile-nav');
+			this.searchform = $('.search-form-wrap');
+			this.searchInput = this.searchform.find('.search-form-input');
+			this.underlineLinks = $('a.underline, a.bctt-ctt-btn, a.comment-reply-link, .entry-content a');
+			this.fullWidthSections = $('.block-wrap.alignwide, .block-wrap.alignfull');
+			this.socialPanel = $('.swp_social_panel.swp_float_left, .swp_social_panel.swp_float_right');
+			this.comments = $('.entry-comments');
+
+			this.socialPanelVisible = true;
+
+			this.menuToggle.on('click', $.proxy(this.toggleMenu, this));
+			this.searchformToggle.on('click', $.proxy(this.toggleSearchform, this));
+
+			this.searchInput.on('focusout', $.proxy(this.searchformFocusOut, this));
+
+			$(window).on('load', $.proxy(this.fixFullWidthSections, this))
+				.on('resize', $.proxy(this.fixFullWidthSections, this))
+				.on('scroll', $.proxy(this.handleScroll, this));
+
+			this.prepareunderlineLinks();
+			this.fixFullWidthSections();
+		},
+
+		fixFullWidthSections: function () {
+			var scrollbarWidth = window.innerWidth - $('body').width() + 'px',
+				width = 'calc(100vw - ' + scrollbarWidth + ')';
+
+			this.fullWidthSections.each(function (i, section) {
+				$(section).css('width', width);
+			});
+		},
+
+		handleScroll: function (e) {
+			if (this.socialPanel.length) {
+				var position = $(document).scrollTop() + this.socialPanel.height() + parseInt(this.socialPanel.css('top')) - 50,
+					commentsOffset = this.comments.offset().top;
+
+				if (position >= commentsOffset && this.socialPanelVisible == true) {
+					this.socialPanel.animate({
+						opacity: 0
+					});
+					this.socialPanelVisible = false;
+				} else if (position < commentsOffset && this.socialPanelVisible == false) {
+					this.socialPanel.animate({
+						opacity: 1
+					});
+					this.socialPanelVisible = true;
+				}
+			}
+		},
+
+		prepareunderlineLinks: function () {
+			this.underlineLinks.each(function (i, item) {
+				var link = $(this)
+
+				if (!link.find('span').length) {
+					link.html($(document.createElement('span')).html(link.html()));
+				}
+			});
+		},
+
+		toggleMenu: function (e) {
+			e.preventDefault();
+
+			if (this.menuToggle.hasClass('active')) {
+				this.mobileMenu.slideUp(50, $.proxy(this.maybeHideMobileWrap, this));
+				this.menuToggle.removeClass('active');
+			} else {
+				this.mobileWrap.slideDown(50, $.proxy(function () {
+					this.mobileMenu.slideDown(50);
+				}, this));
+				this.menuToggle.addClass('active');
+			}
+		},
+
+		toggleSearchform: function (e) {
+			e.preventDefault();
+
+			if (this.searchformToggle.hasClass('active')) {
+				this.hideSearchForm();
+			} else {
+				this.showSearchForm();
+			}
+		},
+
+		showSearchForm: function () {
+			if ('absolute' === this.searchform.css('position')) {
+				this.searchform.fadeIn(50);
+			} else {
+				this.mobileWrap.slideDown(50, $.proxy(function () {
+					this.searchform.slideDown(50);
+				}, this));
+			}
+
+			this.searchformToggle.addClass('active');
+			this.searchInput.focus();
+		},
+
+		hideSearchForm: function () {
+			if ('absolute' === this.searchform.css('position')) {
+				this.searchform.fadeOut(50);
+			} else {
+				this.searchform.slideUp(50, $.proxy(this.maybeHideMobileWrap, this));
+			}
+
+			this.searchformToggle.removeClass('active');
+		},
+
+		searchformFocusOut: function () {
+			if ('absolute' === this.searchform.css('position')) {
+				this.hideSearchForm();
+			}
+		},
+
+		maybeHideMobileWrap: function () {
+			if (!this.searchform.is(':visible') && !this.mobileMenu.is(':visible')) {
+				this.mobileWrap.slideUp(50);
+			}
+		}
+	}
+
+	$(document).ready(function () {
+		new NB();
+	});
+
+})(jQuery);
+
+// Make all entrys clickable.
+jQuery(function ($) {
+	$(".blog .post.entry, .block.blog .post.entry").click(function () {
+		window.location = $(this).find("a").attr("href");
+		return false;
+	});
+
+});
+
+// Adds animation class when element is scrolled into view.
+jQuery(function (n) {
+	function t() {
+		var t = n(".animated");
+		n.each(t, function () {
+			var t = n(window).height(),
+				e = n(this).offset().top - n(document).scrollTop();
+			Math.floor(e / t * 100) < 85 && n(this).addClass("animationGo")
+		})
+	}
+
+	document.documentElement.className = "js", n(document).ready(function () {
+		setTimeout(function () {
+			t()
+		}, 150)
+	}), n(window).scroll(function () {
+		t()
+	})
+}(jQuery));
